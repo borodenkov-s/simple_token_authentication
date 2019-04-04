@@ -1,5 +1,6 @@
 require 'active_support/version'
 require 'simple_token_authentication/acts_as_token_authenticatable'
+require 'simple_token_authentication/acts_as_authentication_token'
 require 'simple_token_authentication/acts_as_token_authentication_handler'
 require 'simple_token_authentication/configuration'
 require 'simple_token_authentication/errors'
