@@ -8,7 +8,11 @@ module SimpleTokenAuthentication
     # before editing this file, the discussion is very interesting.
 
     def authentication_token_for(user_agent)
-      authentication_tokens.active.find_by_user_agent(user_agent).try(:token)
+      authentication_instance_for(user_agent).try(:token)
+    end
+
+    def authentication_instance_for(user_agent)
+      authentication_tokens.active.find_by_user_agent(user_agent)
     end
 
     module ClassMethods

@@ -22,7 +22,7 @@ module SimpleTokenAuthentication
     # Because it is intended to be used as a filter,
     # this method is -and should be kept- idempotent.
     def ensure_token_present
-      self.expires_at = Date.today + EXPIRATION_DELAY
+      self.expires_at = Date.today + self.class::EXPIRATION_DELAY
       self.token      = generate_token(token_generator) if token.blank?
     end
 
