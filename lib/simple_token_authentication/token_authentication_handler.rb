@@ -129,7 +129,6 @@ module SimpleTokenAuthentication
       end
 
       def define_token_authentication_helpers_for(entity, fallback_handler)
-
         method_name = "authenticate_#{entity.name_underscore}_from_token"
         method_name_bang = method_name + '!'
 

@@ -33,9 +33,13 @@ module SimpleTokenAuthentication
     # Private: Return the names of the header to watch for the email param
     def identifier_header_names
       if header_names.present?
-        identifiers.map { |identifier| header_names[identifier] }
+        identifiers.each_with_object({}) do |identifier, result|
+          result[identifier.to_sym] = header_names[identifier]
+        end
       else
-        Array("X-#{name_underscore.camelize}-#{identifier.to_s.camelize}")
+        identifiers.each_with_object({}) do |identifier, result|
+          result[identifier.to_sym] = "X-#{name_underscore.camelize}-#{identifier.to_s.camelize}"
+        end
       end
     end
 
@@ -85,16 +89,20 @@ module SimpleTokenAuthentication
           return identifier_value
         end
       end
+
+      false
     end
 
     def fetch_identifier_from_headers(controller)
-      identifier_param_names.each do |identifier, param_name|
-        if (identifier_value = controller.headers[param_name]).present?
+      identifier_header_names.each do |identifier, param_name|
+        if (identifier_value = controller.request.headers[param_name]).present?
           @identifier = identifier
 
           return identifier_value
         end
       end
+
+      false
     end
   end
 end
