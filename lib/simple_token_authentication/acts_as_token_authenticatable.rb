@@ -17,11 +17,10 @@ module SimpleTokenAuthentication
 
     module ClassMethods
       def acts_as_token_authenticatable(options = {})
-        foreign_key = options[:foreign_key] || "#{self.name.downcase}_id"
+        foreign_key      = options[:foreign_key] || "#{self.name.downcase}_id"
+        association_name = options[:association_name] || :authentication_tokens
 
-        has_many :authentication_tokens,
-                 dependent: :destroy,
-                 foreign_key: foreign_key
+        has_many association_name, dependent: :destroy, foreign_key: foreign_key
       end
     end
   end
