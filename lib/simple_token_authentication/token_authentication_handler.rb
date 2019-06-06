@@ -70,10 +70,14 @@ module SimpleTokenAuthentication
       # namely ActiveRecord and Mongoid in all their supported versions.
 
       if entity.identifier == :token
-        identifier_param_value && entity.model.find_for(identifier_param_value)
+        identifier_param_value && find_record_by(entity.association_name, identifier_param_value)
       else
         identifier_param_value && entity.model.find_for_authentication(entity.identifier => identifier_param_value)
       end
+    end
+
+    def find_record_by(association_name, token)
+      association_name.to_s.classify.constantize.active.find_by_token(token).try(:user)
     end
 
     # Private: Take benefit from Devise case-insensitive keys
@@ -104,9 +108,10 @@ module SimpleTokenAuthentication
       #
       # Returns nothing.
       def handle_token_authentication_for(model, options = {})
-        model_alias = options[:as] || options['as']
-        entity = entities_manager.find_or_create_entity(model, model_alias)
-        options = SimpleTokenAuthentication.parse_options(options)
+        model_alias      = options[:as] || options['as']
+        association_name = options[:association_name] || options['association_name']
+        entity           = entities_manager.find_or_create_entity(model, model_alias, association_name)
+        options          = SimpleTokenAuthentication.parse_options(options)
         define_token_authentication_helpers_for(entity, fallback_handler(options))
         set_token_authentication_hooks(entity, options)
       end

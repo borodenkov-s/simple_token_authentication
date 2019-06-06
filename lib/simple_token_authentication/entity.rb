@@ -1,22 +1,13 @@
 module SimpleTokenAuthentication
   class Entity
-    def initialize(model, model_alias=nil)
-      @model           = model
-      @name            = model.name
-      @identifier      = nil
-      @name_underscore = model_alias.to_s unless model_alias.nil?
-    end
+    attr_accessor :model, :name, :identifier, :association_name
 
-    def model
-      @model
-    end
-
-    def name
-      @name
-    end
-
-    def identifier
-      @identifier
+    def initialize(model, model_alias=nil, association_name=nil)
+      @model            = model
+      @name             = model.name
+      @identifier       = nil
+      @association_name = association_name || :authentication_tokens
+      @name_underscore  = model_alias.to_s unless model_alias.nil?
     end
 
     def name_underscore

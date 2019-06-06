@@ -12,6 +12,7 @@ module SimpleTokenAuthentication
     end
 
     def authentication_instance_for(user_agent)
+      # TODO: need to get rid of hardcoded association
       authentication_tokens.active.find_by_user_agent(user_agent)
     end
 
