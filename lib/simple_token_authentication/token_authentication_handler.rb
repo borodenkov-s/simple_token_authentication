@@ -5,7 +5,6 @@ require 'simple_token_authentication/entities_manager'
 require 'simple_token_authentication/devise_fallback_handler'
 require 'simple_token_authentication/exception_fallback_handler'
 require 'simple_token_authentication/sign_in_handler'
-require 'simple_token_authentication/token_comparator'
 
 module SimpleTokenAuthentication
   module TokenAuthenticationHandler
@@ -21,7 +20,6 @@ module SimpleTokenAuthentication
       private :fallback!
       private :token_correct?
       private :perform_sign_in!
-      private :token_comparator
       private :sign_in_handler
       private :find_record_from_identifier
       private :integrate_with_devise_case_insensitive_keys
@@ -38,7 +36,7 @@ module SimpleTokenAuthentication
     def authenticate_entity_from_token!(entity)
       record = find_record_from_identifier(entity)
 
-      if token_correct?(record, entity, token_comparator)
+      if token_correct?(record, entity)
         perform_sign_in!(record, sign_in_handler)
         after_successful_token_authentication
       end
@@ -48,9 +46,11 @@ module SimpleTokenAuthentication
       fallback_handler.fallback!(self, entity)
     end
 
-    def token_correct?(record, entity, token_comparator)
-      record && token_comparator.compare(record.authentication_token_for(request.user_agent),
-                                         entity.get_token_from_params_or_headers(self))
+    def token_correct?(record, entity)
+      return record if entity.identifier == :token
+
+      token = entity.get_token_from_params_or_headers(self)
+      record.present? && find_record_by_token(entity, token, record)
     end
 
     def perform_sign_in!(record, sign_in_handler)
@@ -70,14 +70,22 @@ module SimpleTokenAuthentication
       # namely ActiveRecord and Mongoid in all their supported versions.
 
       if entity.identifier == :token
-        identifier_param_value && find_record_by(entity.association_name, identifier_param_value)
+        identifier_param_value && find_record_by_token(entity, identifier_param_value)
       else
         identifier_param_value && entity.model.find_for_authentication(entity.identifier => identifier_param_value)
       end
     end
 
-    def find_record_by(association_name, token)
-      association_name.to_s.classify.constantize.active.find_by_token(token).try(:user)
+    def find_record_by_token(entity, token, record = nil)
+      association = entity.association_name.to_s.classify.constantize
+
+      token_instance = if record
+        association.active.where(:"#{entity.name.downcase}_id" => record)
+      else
+        association.active
+      end.find_by_token(token)
+
+      token_instance.try(entity.name.downcase)
     end
 
     # Private: Take benefit from Devise case-insensitive keys
@@ -90,10 +98,6 @@ module SimpleTokenAuthentication
     def integrate_with_devise_case_insensitive_keys(identifier_value, entity)
       identifier_value.downcase! if identifier_value && Devise.case_insensitive_keys.include?(entity.identifier)
       identifier_value
-    end
-
-    def token_comparator
-      TokenComparator.instance
     end
 
     def sign_in_handler

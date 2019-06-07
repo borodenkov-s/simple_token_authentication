@@ -7,15 +7,6 @@ module SimpleTokenAuthentication
     # Please see https://gist.github.com/josevalim/fb706b1e933ef01e4fb6
     # before editing this file, the discussion is very interesting.
 
-    def authentication_token_for(user_agent)
-      authentication_instance_for(user_agent).try(:token)
-    end
-
-    def authentication_instance_for(user_agent)
-      # TODO: need to get rid of hardcoded association
-      authentication_tokens.active.find_by_user_agent(user_agent)
-    end
-
     module ClassMethods
       def acts_as_token_authenticatable(options = {})
         foreign_key      = options[:foreign_key] || "#{self.name.downcase}_id"
